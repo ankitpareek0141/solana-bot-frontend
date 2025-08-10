@@ -35,9 +35,24 @@ function App() {
     });
 
     const intervalRef = useRef(null);
-    const [balance, setBalance] = useState(0);
     // const { connection } = useConnection();
     // const { publicKey } = useWallet();
+
+    // Inside your state section
+    const [tradeLogs, setTradeLogs] = useState([]);
+
+    // Example fetch from backend (in fetchStats or a separate API)
+    const fetchTradeLogs = async () => {
+        try {
+            const res = await fetch('http://localhost:3001/getTradeLogs');
+            const data = await res.json();
+            console.log(data);
+
+            setTradeLogs(data); // Expecting array of trade log objects
+        } catch (err) {
+            console.error('Error fetching trade logs:', err);
+        }
+    };
 
     const fetchStats = async () => {
         try {
@@ -85,6 +100,7 @@ function App() {
             const tokens = await res.json();
 
             await fetchStats();
+            await fetchTradeLogs();
 
             setTokenList(tokens.slice(0, 30));
         } catch (err) {
@@ -179,13 +195,13 @@ function App() {
         if (token) {
             setIsAuthenticated(true);
             fetchStats();
+            fetchTradeLogs();
         }
     }, []);
 
     useEffect(() => {
         if (botActive) {
             intervalRef.current = setInterval(fetchTokens, 1000);
-            ``;
         } else {
             clearInterval(intervalRef.current);
         }
@@ -333,8 +349,9 @@ function App() {
                         </div>
                     </div>
 
-                    <div className="stats-tokens-row">
-                        {/* Left: Trade Stats */}
+                    {/* Left: Trade Stats */}
+                    <div className="stats-and-logs">
+                        {/* Trade Stats */}
                         <div className="stats-panel">
                             <h2>📊 Trade Stats</h2>
                             <div className="stats-grid cool-stats">
@@ -392,44 +409,118 @@ function App() {
                             </div>
                         </div>
 
-                        {/* Right: Recent Tokens */}
-                        <div>
-                            <h2 className="token-title">30 Recent Tokens</h2>
-                            <div className="token-grid">
-                                {tokenList?.length ? (
-                                    tokenList.map((token) => (
-                                        <div
-                                            key={token.id}
-                                            className="token-card"
-                                        >
-                                            <img
-                                                src={
-                                                    token.icon ||
-                                                    'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'
-                                                }
-                                                alt={token.symbol}
-                                                className="token-icon"
-                                            />
-                                            <div>
-                                                <strong>{token.symbol}</strong>
-                                                <div className="token-address">
-                                                    {token.id.slice(0, 10)}...
-                                                </div>
-                                                <div className="token-liquidity">
-                                                    Liquidity:{' '}
-                                                    {Number(
-                                                        token.liquidity
-                                                    ).toFixed(3) || 'N/A'}
-                                                </div>
+                        {/* Trade Logs */}
+                        <div className="trade-logs-section">
+                            <h2>📜 Trade Logs</h2>
+                            <div className="trade-logs-wrapper">
+                                <table className="trade-logs-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Token</th>
+                                            <th>Address</th>
+                                            <th>Amount</th>
+                                            <th>Price</th>
+                                            <th>Profit/Loss</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {tradeLogs.length > 0 ? (
+                                            tradeLogs.map((log, index) => (
+                                                <tr
+                                                    key={index}
+                                                    className={
+                                                        log.type === 'BUY'
+                                                            ? 'buy-row'
+                                                            : 'sell-row'
+                                                    }
+                                                >
+                                                    <td>{log.type}</td>
+                                                    <td>{log.token}</td>
+                                                    <td>
+                                                        <a
+                                                            href={`https://solscan.io/token/${log.address}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            {log.address.slice(
+                                                                0,
+                                                                6
+                                                            )}
+                                                            ...
+                                                            {log.address.slice(
+                                                                -4
+                                                            )}
+                                                        </a>
+                                                    </td>
+                                                    <td>{log.amount}</td>
+                                                    <td>
+                                                        {log.price.toFixed(9)}
+                                                    </td>
+                                                    <td>
+                                                        {(log.profitLoss > 0 ? "+" : "-") + log.profitLoss.toFixed(9)}
+                                                    </td>
+                                                    <td>
+                                                        {new Date(
+                                                            log.time
+                                                        ).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan="7"
+                                                    style={{
+                                                        textAlign: 'center',
+                                                        color: '#aaa',
+                                                    }}
+                                                >
+                                                    No trade logs yet
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Recent Tokens */}
+                    <div>
+                        <h2 className="token-title">30 Recent Tokens</h2>
+                        <div className="token-grid">
+                            {tokenList?.length ? (
+                                tokenList.map((token) => (
+                                    <div key={token.id} className="token-card">
+                                        <img
+                                            src={
+                                                token.icon ||
+                                                'https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg'
+                                            }
+                                            alt={token.symbol}
+                                            className="token-icon"
+                                        />
+                                        <div>
+                                            <strong>{token.symbol}</strong>
+                                            <div className="token-address">
+                                                {token.id.slice(0, 10)}...
+                                            </div>
+                                            <div className="token-liquidity">
+                                                Liquidity:{' '}
+                                                {Number(
+                                                    token.liquidity
+                                                ).toFixed(3) || 'N/A'}
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <h3 className="no-tokens-msg">
-                                        🚫 Bot is not active — no tokens fetched
-                                    </h3>
-                                )}
-                            </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <h3 className="no-tokens-msg">
+                                    🚫 Bot is not active — no tokens fetched
+                                </h3>
+                            )}
                         </div>
                     </div>
                 </>
