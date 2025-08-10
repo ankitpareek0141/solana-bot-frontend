@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, startTransition } from 'react';
 import './App.css';
 
+const BASE_URL = "http://srv951924.hstgr.cloud:4173";
+
 function App() {
     const [amount, setAmount] = useState(0);
     const [intervalSec, setIntervalSec] = useState(0);
@@ -44,7 +46,7 @@ function App() {
     // Example fetch from backend (in fetchStats or a separate API)
     const fetchTradeLogs = async () => {
         try {
-            const res = await fetch('http://localhost:3001/getTradeLogs');
+            const res = await fetch(`${BASE_URL}/getTradeLogs`);
             const data = await res.json();
             console.log(data);
 
@@ -57,7 +59,7 @@ function App() {
     const fetchStats = async () => {
         try {
             const statsResponse = await fetch(
-                'http://localhost:3001/getStats',
+                `${BASE_URL}/getStats`,
                 {
                     method: 'GET',
                 }
@@ -111,7 +113,7 @@ function App() {
     const submitBackendConfig = async () => {
         try {
             const response = await fetch(
-                'http://localhost:3001/set-bot-config',
+                `${BASE_URL}/set-bot-config`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -145,7 +147,7 @@ function App() {
 
     const toggleBot = async () => {
         try {
-            const response = await fetch('http://localhost:3001/toggleBot', {
+            const response = await fetch(`$${BASE_URL}/toggleBot`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
             });
@@ -164,7 +166,7 @@ function App() {
 
     const handleLogin = async () => {
         try {
-            const res = await fetch('http://localhost:3001/login', {
+            const res = await fetch(`${BASE_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
