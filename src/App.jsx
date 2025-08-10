@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, startTransition } from 'react';
 import './App.css';
 
-const BASE_URL = "http://srv951924.hstgr.cloud:4173";
+const BASE_URL = "http://srv951924.hstgr.cloud:3000";
 
 function App() {
     const [amount, setAmount] = useState(0);
