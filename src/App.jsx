@@ -151,7 +151,7 @@ function App() {
 
     const toggleBot = async () => {
         try {
-            const response = await fetch(`$${BASE_URL}/toggleBot`, {
+            const response = await fetch(`${BASE_URL}/toggleBot`, {
                 method: 'PUT',
                 credentials: "include", // important
                 headers: { 'Content-Type': 'application/json' },
