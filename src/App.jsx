@@ -47,7 +47,7 @@ function App() {
     const fetchTradeLogs = async () => {
         try {
             const res = await fetch(`${BASE_URL}/getTradeLogs`, {
-                credentials: "include", // important
+                // credentials: "include", // important
             });
             const data = await res.json();
             console.log(data);
@@ -64,7 +64,7 @@ function App() {
                 `${BASE_URL}/getStats`,
                 {
                     method: 'GET',
-                    credentials: "include", // important
+                    // credentials: "include", // important
                 }
             );
             const statsResult = await statsResponse.json();
@@ -120,7 +120,7 @@ function App() {
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: "include", // important
+                    // credentials: "include", // important
                     body: JSON.stringify({
                         amount,
                         minLiquidity,
@@ -153,7 +153,7 @@ function App() {
         try {
             const response = await fetch(`${BASE_URL}/toggleBot`, {
                 method: 'PUT',
-                credentials: "include", // important
+                // credentials: "include", // important
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -171,10 +171,10 @@ function App() {
 
     const handleLogin = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/login`, {
+            const res = await fetch(`http://srv951924.hstgr.cloud:3001/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: "include", // important
+                // credentials: "include", // important
                 body: JSON.stringify({ email, password }),
             });
 
