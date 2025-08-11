@@ -46,7 +46,9 @@ function App() {
     // Example fetch from backend (in fetchStats or a separate API)
     const fetchTradeLogs = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/getTradeLogs`);
+            const res = await fetch(`${BASE_URL}/getTradeLogs`, {
+                credentials: "include", // important
+            });
             const data = await res.json();
             console.log(data);
 
@@ -62,6 +64,7 @@ function App() {
                 `${BASE_URL}/getStats`,
                 {
                     method: 'GET',
+                    credentials: "include", // important
                 }
             );
             const statsResult = await statsResponse.json();
@@ -117,6 +120,7 @@ function App() {
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: "include", // important
                     body: JSON.stringify({
                         amount,
                         minLiquidity,
@@ -149,6 +153,7 @@ function App() {
         try {
             const response = await fetch(`$${BASE_URL}/toggleBot`, {
                 method: 'PUT',
+                credentials: "include", // important
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -169,6 +174,7 @@ function App() {
             const res = await fetch(`${BASE_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: "include", // important
                 body: JSON.stringify({ email, password }),
             });
 
