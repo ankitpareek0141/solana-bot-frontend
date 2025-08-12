@@ -11,7 +11,8 @@ export default defineConfig({
     allowedHosts: [
       'streamalert.site',
       'www.streamalert.site',
-      'srv951924.hstgr.cloud'
+      'srv951924.hstgr.cloud',
+      'localhost:3001'
     ]
   },
 })

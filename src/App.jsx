@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, startTransition } from 'react';
 import './App.css';
 
 const BASE_URL = "http://srv951924.hstgr.cloud:3001";
+// const BASE_URL = "http://localhost:3001";
 
 function App() {
     const [amount, setAmount] = useState(0);
@@ -50,7 +51,6 @@ function App() {
                 credentials: "include", // important
             });
             const data = await res.json();
-            console.log(data);
 
             setTradeLogs(data); // Expecting array of trade log objects
         } catch (err) {
@@ -70,8 +70,6 @@ function App() {
             const statsResult = await statsResponse.json();
             // console.log("====>   ", statsResult);
 
-            console.log(statsResult.winRate);
-
             setStats((prevStats) => ({
                 ...prevStats,
                 totalTrades: statsResult.totalTrades,
@@ -90,7 +88,6 @@ function App() {
             }));
 
             setBotActive(statsResult.botStatus);
-            console.log(statsResult.isConfigUpdated);
 
             setIsConfigUpdated(statsResult.isConfigUpdated);
         } catch (error) {
@@ -135,7 +132,6 @@ function App() {
                 }
             );
             const result = await response.json();
-            console.log(result);
 
             if (result.status != 200) {
                 alert(result.message);
@@ -198,6 +194,16 @@ function App() {
         setIsAuthenticated(false);
     };
 
+    function calculateProfit(profitAmount) {
+        if(profitAmount == 0) {
+            return 0;
+        } else if(profitAmount > 0) {
+            return '+' + profitAmount.toFixed(8);
+        } else {
+            return profitAmount.toFixed(8)
+        }
+    }
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
@@ -253,7 +259,7 @@ function App() {
                                     className="input"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                             <label>
@@ -265,7 +271,7 @@ function App() {
                                     onChange={(e) =>
                                         setIntervalSec(e.target.value)
                                     }
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                             <label>
@@ -276,7 +282,7 @@ function App() {
                                     onChange={(e) =>
                                         setSlippage(Number(e.target.value))
                                     }
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 >
                                     {[0.01, 0.1, 0.5, 1, 3, 5, 10].map((s) => (
                                         <option key={s} value={s}>
@@ -294,7 +300,7 @@ function App() {
                                     onChange={(e) =>
                                         setMinLiquidity(e.target.value)
                                     }
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                             <label>
@@ -306,7 +312,7 @@ function App() {
                                     onChange={(e) =>
                                         setTopHoldersPercentage(e.target.value)
                                     }
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                             <label>
@@ -317,7 +323,7 @@ function App() {
                                     value={rpcURL}
                                     placeholder="https://example-rpc-url.com"
                                     onChange={(e) => setRpcUrl(e.target.value)}
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                             <label>
@@ -330,12 +336,12 @@ function App() {
                                     onChange={(e) =>
                                         setPrivateKey(e.target.value)
                                     }
-                                    disabled={isConfigUpdated}
+                                    disabled={botActive}
                                 />
                             </label>
                         </div>
                         <div className="button-row">
-                            <button onClick={submitBackendConfig}>
+                            <button onClick={submitBackendConfig} disabled={botActive}>
                                 Set Config
                             </button>
                             <button
@@ -368,7 +374,7 @@ function App() {
                                     {stats.totalTrades}
                                 </div>
                                 <div>
-                                    <strong>Successful Trades:</strong>{' '}
+                                    <strong>Profitable Trades:</strong>{' '}
                                     {stats.successfulTrades}
                                 </div>
                                 <div>
@@ -439,9 +445,9 @@ function App() {
                                                 <tr
                                                     key={index}
                                                     className={
-                                                        log.type === 'BUY'
-                                                            ? 'buy-row'
-                                                            : 'sell-row'
+                                                        log.type == 'BUY' ? '' : (
+                                                            log.profitLoss >= 0 ? 'buy-row' : 'sell-row'
+                                                        )
                                                     }
                                                 >
                                                     <td>{log.type}</td>
@@ -467,7 +473,7 @@ function App() {
                                                         {log.price.toFixed(9)}
                                                     </td>
                                                     <td>
-                                                        {(log.profitLoss > 0 ? "+" : "-") + log.profitLoss.toFixed(9)}
+                                                        {calculateProfit(log.profitLoss)}
                                                     </td>
                                                     <td>
                                                         {new Date(
