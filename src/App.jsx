@@ -16,7 +16,7 @@ function App() {
     const [isConfigUpdated, setIsConfigUpdated] = useState(false);
 
     // Login State
-    const [isAuthenticated, setIsAuthenticated] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -206,7 +206,7 @@ function App() {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (!token) {
+        if (token) {
             setIsAuthenticated(true);
             fetchStats();
             fetchTradeLogs();
