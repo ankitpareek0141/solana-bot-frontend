@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef, startTransition } from 'react';
 import './App.css';
 
-const BASE_URL = "http://srv951924.hstgr.cloud:3001";
-// const BASE_URL = "http://localhost:3001";
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 function App() {
     const [amount, setAmount] = useState(0);
@@ -17,7 +16,7 @@ function App() {
     const [isConfigUpdated, setIsConfigUpdated] = useState(false);
 
     // Login State
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -33,8 +32,11 @@ function App() {
         successfulSells: 0,
         failedBuys: 0,
         failedSells: 0,
-        winRate: '0.00%',
         totalProfit: 0,
+        winRate: '0.00',
+        avgGrowth: '0.00',
+        avgLoss: '0.00',
+        rugPull: '0.00',
     });
 
     const intervalRef = useRef(null);
@@ -48,9 +50,11 @@ function App() {
     const fetchTradeLogs = async () => {
         try {
             const res = await fetch(`${BASE_URL}/getTradeLogs`, {
-                credentials: "include", // important
+                credentials: 'include', // important
             });
             const data = await res.json();
+
+            // console.log(data);
 
             setTradeLogs(data); // Expecting array of trade log objects
         } catch (err) {
@@ -60,13 +64,10 @@ function App() {
 
     const fetchStats = async () => {
         try {
-            const statsResponse = await fetch(
-                `${BASE_URL}/getStats`,
-                {
-                    method: 'GET',
-                    credentials: "include", // important
-                }
-            );
+            const statsResponse = await fetch(`${BASE_URL}/getStats`, {
+                method: 'GET',
+                credentials: 'include', // important
+            });
             const statsResult = await statsResponse.json();
             // console.log("====>   ", statsResult);
 
@@ -83,8 +84,11 @@ function App() {
                 successfulSells: statsResult.successfulSells,
                 failedBuys: statsResult.failedBuys,
                 failedSells: statsResult.failedSells,
-                winRate: statsResult.winRate,
                 totalProfit: statsResult.totalProfit,
+                winRate: statsResult.winRate,
+                avgGrowth: statsResult.avgGrowth,
+                avgLoss: statsResult.avgLoss,
+                // rugPull: 0.00 // statsResult.rugPull
             }));
 
             setBotActive(statsResult.botStatus);
@@ -112,25 +116,21 @@ function App() {
 
     const submitBackendConfig = async () => {
         try {
-            const response = await fetch(
-                `${BASE_URL}/set-bot-config`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: "include", // important
-                    body: JSON.stringify({
-                        amount,
-                        minLiquidity,
-                        inputMint:
-                            'So11111111111111111111111111111111111111112',
-                        slippageBps: slippage,
-                        sellTimer: intervalSec,
-                        privateKey: privateKey.trim(),
-                        rpcURL,
-                        topHoldersPercentage,
-                    }),
-                }
-            );
+            const response = await fetch(`${BASE_URL}/set-bot-config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include', // important
+                body: JSON.stringify({
+                    amount,
+                    minLiquidity,
+                    inputMint: 'So11111111111111111111111111111111111111112',
+                    slippageBps: slippage,
+                    sellTimer: intervalSec,
+                    privateKey: privateKey.trim(),
+                    rpcURL,
+                    topHoldersPercentage,
+                }),
+            });
             const result = await response.json();
 
             if (result.status != 200) {
@@ -149,7 +149,7 @@ function App() {
         try {
             const response = await fetch(`${BASE_URL}/toggleBot`, {
                 method: 'PUT',
-                credentials: "include", // important
+                credentials: 'include', // important
                 headers: { 'Content-Type': 'application/json' },
             });
 
@@ -170,7 +170,7 @@ function App() {
             const res = await fetch(`${BASE_URL}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                credentials: "include", // important
+                credentials: 'include', // important
                 body: JSON.stringify({ email, password }),
             });
 
@@ -195,18 +195,18 @@ function App() {
     };
 
     function calculateProfit(profitAmount) {
-        if(profitAmount == 0) {
+        if (profitAmount == 0) {
             return 0;
-        } else if(profitAmount > 0) {
+        } else if (profitAmount > 0) {
             return '+' + profitAmount.toFixed(8);
         } else {
-            return profitAmount.toFixed(8)
+            return profitAmount.toFixed(8);
         }
     }
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (token) {
+        if (!token) {
             setIsAuthenticated(true);
             fetchStats();
             fetchTradeLogs();
@@ -341,7 +341,10 @@ function App() {
                             </label>
                         </div>
                         <div className="button-row">
-                            <button onClick={submitBackendConfig} disabled={botActive}>
+                            <button
+                                onClick={submitBackendConfig}
+                                disabled={botActive}
+                            >
                                 Set Config
                             </button>
                             <button
@@ -363,62 +366,104 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Left: Trade Stats */}
                     <div className="stats-and-logs">
                         {/* Trade Stats */}
-                        <div className="stats-panel">
-                            <h2>📊 Trade Stats</h2>
-                            <div className="stats-grid cool-stats">
-                                <div>
-                                    <strong>Total Trades:</strong>{' '}
-                                    {stats.totalTrades}
-                                </div>
-                                <div>
-                                    <strong>Profitable Trades:</strong>{' '}
-                                    {stats.successfulTrades}
-                                </div>
-                                <div>
-                                    <strong>Failed Trades:</strong>{' '}
-                                    {stats.failedTrades}
-                                </div>
-                                <div>
-                                    <strong>Total Buys:</strong>{' '}
-                                    {stats.totalBuys}
-                                </div>
-                                <div>
-                                    <strong>Total Sells:</strong>{' '}
-                                    {stats.totalSells}
-                                </div>
-                                <div>
-                                    <strong>Successful Buys:</strong>{' '}
-                                    {stats.successfulBuys}
-                                </div>
-                                <div>
-                                    <strong>Successful Sells:</strong>{' '}
-                                    {stats.successfulSells}
-                                </div>
-                                <div>
-                                    <strong>Failed Buys:</strong>{' '}
-                                    {stats.failedBuys}
-                                </div>
-                                <div>
-                                    <strong>Failed Sells:</strong>{' '}
-                                    {stats.failedSells}
-                                </div>
-                                <div>
-                                    <strong>Total Buy Amount:</strong>{' '}
-                                    {stats.totalBuyingAmount}
-                                </div>
-                                <div>
-                                    <strong>Total Sell Amount:</strong>{' '}
-                                    {stats.totalSellingAmount}
-                                </div>
-                                <div>
-                                    <strong>Total Profit:</strong>{' '}
-                                    {stats.totalProfit}
-                                </div>
-                                <div>
-                                    <strong>Win Rate:</strong> {stats.winRate}
+                        <div className="stats-section">
+                            <div className="stats-panel">
+                                <h2>📊 Trade Stats</h2>
+                                <div className="stats-cards">
+                                    {/* Successful */}
+                                    <div className="stats-card">
+                                        <h3>Successful</h3>
+                                        <ul>
+                                            <li>
+                                                <span>✅ Successful Buys:</span>{' '}
+                                                <strong>
+                                                    {stats.successfulBuys}
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>
+                                                    ✅ Successful Sells:
+                                                </span>{' '}
+                                                <strong>
+                                                    {stats.successfulSells}
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>❌ Failed Sells:</span>{' '}
+                                                <strong>
+                                                    {stats.failedSells}
+                                                </strong>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Trades */}
+                                    <div className="stats-card">
+                                        <h3>Trades</h3>
+                                        <ul>
+                                            <li>
+                                                <span>📊 Total Profit:</span>{' '}
+                                                <strong>
+                                                    {stats.totalProfit}
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>
+                                                    💰 Total Buy Amount:
+                                                </span>{' '}
+                                                <strong>
+                                                    {stats.totalBuyingAmount}
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>
+                                                    💵 Total Sell Amount:
+                                                </span>{' '}
+                                                <strong>
+                                                    {stats.totalSellingAmount}
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>
+                                                    📈 Profitable Trades:
+                                                </span>{' '}
+                                                <strong>
+                                                    {stats.successfulTrades}
+                                                </strong>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Performance */}
+                                    <div className="stats-card">
+                                        <h3>Performance</h3>
+                                        <ul>
+                                            <li>
+                                                <span>🏆 Win Rate %:</span>{' '}
+                                                <strong>{stats.winRate}</strong>
+                                            </li>
+                                            <li>
+                                                <span>📈 Avg Growth %:</span>{' '}
+                                                <strong>
+                                                    {stats.avgGrowth}%
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>📉 Avg Loss %:</span>{' '}
+                                                <strong>
+                                                    {stats.avgLoss}%
+                                                </strong>
+                                            </li>
+                                            <li>
+                                                <span>⚠️ Rugpull %:</span>{' '}
+                                                <strong>
+                                                    {stats.rugPull}%
+                                                </strong>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -430,13 +475,13 @@ function App() {
                                 <table className="trade-logs-table">
                                     <thead>
                                         <tr>
-                                            <th>Type</th>
                                             <th>Token</th>
                                             <th>Address</th>
-                                            <th>Amount</th>
-                                            <th>Price</th>
+                                            <th>Buy Amount</th>
+                                            <th>Sell Amount</th>
                                             <th>Profit/Loss</th>
-                                            <th>Time</th>
+                                            <th>Percentage(%)</th>
+                                            <th>Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -445,13 +490,22 @@ function App() {
                                                 <tr
                                                     key={index}
                                                     className={
-                                                        log.type == 'BUY' ? '' : (
-                                                            log.profitLoss >= 0 ? 'buy-row' : 'sell-row'
-                                                        )
+                                                        !log.isSellFailed
+                                                            ? log.type === 'BUY'
+                                                                ? ''
+                                                                : log.profitLoss >=
+                                                                  0
+                                                                ? log.profitLoss ===
+                                                                      0 ||
+                                                                  log.profitLoss ===
+                                                                      null
+                                                                    ? ''
+                                                                    : 'buy-row'
+                                                                : 'sell-row'
+                                                            : 'failed-row'
                                                     }
                                                 >
-                                                    <td>{log.type}</td>
-                                                    <td>{log.token}</td>
+                                                    <td>{log.name}</td>
                                                     <td>
                                                         <a
                                                             href={`https://solscan.io/token/${log.address}`}
@@ -468,17 +522,42 @@ function App() {
                                                             )}
                                                         </a>
                                                     </td>
-                                                    <td>{log.amount}</td>
                                                     <td>
-                                                        {log.price.toFixed(9)}
+                                                        {(
+                                                            Number(
+                                                                log.buyAmount
+                                                            ) / 1e9
+                                                        ).toFixed(9)}
                                                     </td>
                                                     <td>
-                                                        {calculateProfit(log.profitLoss)}
+                                                        {log.sellAmount
+                                                            ? (
+                                                                  Number(
+                                                                      log.sellAmount
+                                                                  ) / 1e9
+                                                              ).toFixed(9)
+                                                            : 'Pending...'}
+                                                    </td>
+                                                    <td>
+                                                        {log.profitLoss
+                                                            ? (
+                                                                  Number(
+                                                                      log.profitLoss
+                                                                  ) / 1e9
+                                                              ).toFixed(9)
+                                                            : 'Pending...'}
+                                                    </td>
+                                                    <td>
+                                                        {log.growthPercent
+                                                            ? Number(
+                                                                  log.growthPercent
+                                                              ).toFixed(2) + '%'
+                                                            : 'Pending...'}
                                                     </td>
                                                     <td>
                                                         {new Date(
                                                             log.time
-                                                        ).toLocaleString()}
+                                                        ).toISOString()}
                                                     </td>
                                                 </tr>
                                             ))
