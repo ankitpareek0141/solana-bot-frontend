@@ -294,6 +294,29 @@ button:disabled {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
+.trade-logs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.reset-logs-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.reset-logs-btn:hover {
+    background-color: #e60000;
+}
+
+
 /* BUY/SELL row colors */
 .buy-type {
     color: #22c55e;
@@ -369,6 +392,32 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   gap: 2rem;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem; /* spacing below header row */
+}
+
+.stats-header h2 {
+  margin: 0; /* remove default h2 margin */
+}
+
+.reset-btn {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.reset-btn:hover {
+  background: #dc2626;
 }
 
 .stats-group {

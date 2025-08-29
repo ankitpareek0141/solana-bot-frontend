@@ -194,6 +194,22 @@ function App() {
         setIsAuthenticated(false);
     };
 
+    const resetStatsButtonBtnClick = async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/resetTradeStats`, {
+                method: 'POST',
+                credentials: 'include',
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setTradeLogs([]); // clear UI immediately
+            }
+        } catch (err) {
+            console.error('Error resetting logs:', err);
+        }
+    };
+
     function calculateProfit(profitAmount) {
         if (profitAmount == 0) {
             return 0;
@@ -370,7 +386,18 @@ function App() {
                         {/* Trade Stats */}
                         <div className="stats-section">
                             <div className="stats-panel">
-                                <h2>📊 Trade Stats</h2>
+                                {/* Header row with flex */}
+                                <div className="stats-header">
+                                    <h2>📊 Trade Stats</h2>
+                                    <button
+                                        className="reset-btn"
+                                        onClick={resetStatsButtonBtnClick}
+                                    >
+                                        Reset Stats
+                                    </button>
+                                </div>
+
+                                {/* Stats Cards */}
                                 <div className="stats-cards">
                                     {/* Successful */}
                                     <div className="stats-card">
@@ -470,7 +497,11 @@ function App() {
 
                         {/* Trade Logs */}
                         <div className="trade-logs-section">
-                            <h2>📜 Trade Logs</h2>
+                            <div className="trade-logs-header">
+                                <h2 className="trade-logs-title">
+                                    📜 Trade Logs
+                                </h2>
+                            </div>
                             <div className="trade-logs-wrapper">
                                 <table className="trade-logs-table">
                                     <thead>
