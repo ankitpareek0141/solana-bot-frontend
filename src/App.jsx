@@ -203,7 +203,7 @@ function App() {
             const data = await res.json();
 
             if (data.success) {
-                setTradeLogs([]); // clear UI immediately
+                alert(data.message);
             }
         } catch (err) {
             console.error('Error resetting logs:', err);
